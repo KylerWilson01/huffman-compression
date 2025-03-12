@@ -14,16 +14,36 @@ func TestCreateBinTreeFromMap(t *testing.T) {
 	}{
 		{
 			name: "pass with symbols", input: map[rune]int{
-				't': 4,
+				't': 5,
 				'h': 1,
 				'i': 2,
-				's': 3,
+				's': 4,
 			},
 			want: binarytree.HuffTree{
 				Root: binarytree.InternalNode{
-					Weight: 10,
-					Left:   nil,
-					Right:  nil,
+					Weight: 12,
+					Left: binarytree.LeafNode{
+						Character: 't',
+						Weight:    5,
+					},
+					Right: binarytree.InternalNode{
+						Weight: 7,
+						Left: binarytree.InternalNode{
+							Weight: 3,
+							Left: binarytree.LeafNode{
+								Weight:    1,
+								Character: 'h',
+							},
+							Right: binarytree.LeafNode{
+								Weight:    2,
+								Character: 'i',
+							},
+						},
+						Right: binarytree.LeafNode{
+							Weight:    4,
+							Character: 's',
+						},
+					},
 				},
 			},
 		},
@@ -40,6 +60,10 @@ func TestCreateBinTreeFromMap(t *testing.T) {
 
 			if bt.Weight() != totalWeight {
 				t.Fatalf("Got %v, wanted %v\n", bt.Weight(), totalWeight)
+			}
+
+			if !bt.Same(&test.want) {
+				t.Fatalf("Not the same trees\n")
 			}
 		})
 	}

@@ -9,38 +9,59 @@ import (
 // BaseNode is the interface for the node
 type BaseNode interface {
 	weight() int
-	isLeaf() bool
+	IsLeaf() bool
+	left() BaseNode
+	right() BaseNode
 }
 
 // LeafNode is the leaf to the tree
 type LeafNode struct {
 	Character rune
 	Weight    int
-	Left      *BaseNode
-	Right     *BaseNode
+	Left      BaseNode
+	Right     BaseNode
+	Code      []byte
 }
 
 func (n LeafNode) weight() int {
 	return n.Weight
 }
 
-func (n LeafNode) isLeaf() bool {
+// IsLeaf determines if the node is a leaf node or not
+func (n LeafNode) IsLeaf() bool {
 	return true
+}
+
+func (n LeafNode) left() BaseNode {
+	return n.Left
+}
+
+func (n LeafNode) right() BaseNode {
+	return n.Right
 }
 
 // InternalNode is the struct that connects two leaf nodes
 type InternalNode struct {
 	Weight int
-	Left   *BaseNode
-	Right  *BaseNode
+	Left   BaseNode
+	Right  BaseNode
 }
 
 func (in InternalNode) weight() int {
 	return in.Weight
 }
 
-func (in InternalNode) isLeaf() bool {
+// IsLeaf determines if the node is a leaf node or not
+func (in InternalNode) IsLeaf() bool {
 	return false
+}
+
+func (in InternalNode) left() BaseNode {
+	return in.Left
+}
+
+func (in InternalNode) right() BaseNode {
+	return in.Right
 }
 
 // HuffTree is the struct for the tree
@@ -56,8 +77,8 @@ func (ht *HuffTree) Weight() int {
 func newHuffInternalTree(l, r BaseNode, wt int) HuffTree {
 	return HuffTree{
 		Root: InternalNode{
-			Left:   &l,
-			Right:  &r,
+			Left:   l,
+			Right:  r,
 			Weight: wt,
 		},
 	}
@@ -96,4 +117,48 @@ func CreateBinaryTreeFromMap(m map[rune]int) HuffTree {
 	}
 
 	return tmp3
+}
+
+// walk walks the tree
+func walk(t BaseNode, ch chan BaseNode, code []byte) {
+	if t == nil {
+		return
+	}
+
+	walk(t.left(), ch, append(code, 0))
+	if t.IsLeaf() {
+		ln := t.(LeafNode)
+		ln.Code = code
+		ch <- ln
+	} else {
+		ch <- t
+	}
+	walk(t.right(), ch, append(code, 1))
+}
+
+// Walker starts the walk of the tree
+func (ht *HuffTree) Walker(ch chan BaseNode) {
+	walk(ht.Root, ch, []byte{})
+	close(ch)
+}
+
+// Same checks to see if the trees are the same
+func (ht *HuffTree) Same(ht2 *HuffTree) bool {
+	if ht == nil || ht2 == nil {
+		return false
+	}
+
+	c1, c2 := make(chan BaseNode), make(chan BaseNode)
+	go ht.Walker(c1)
+	go ht2.Walker(c2)
+	for v1 := range c1 {
+		v2, ok := <-c2
+		if !ok {
+			return false
+		}
+		if v1 != v2 {
+			return false
+		}
+	}
+	return true
 }
