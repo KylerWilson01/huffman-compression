@@ -10,20 +10,23 @@ func TestCreateBinTreeFromMap(t *testing.T) {
 	tests := []struct {
 		name  string
 		input map[rune]int
+		want  binarytree.HuffTree
 	}{
-		{name: "pass with symbols", input: map[rune]int{
-			't': 3,
-			'h': 1,
-			'i': 2,
-			's': 3,
-			'a': 1,
-			'e': 1,
-			'!': 2,
-			',': 2,
-			'"': 1,
-			';': 1,
-			'.': 3,
-		}},
+		{
+			name: "pass with symbols", input: map[rune]int{
+				't': 4,
+				'h': 1,
+				'i': 2,
+				's': 3,
+			},
+			want: binarytree.HuffTree{
+				Root: binarytree.InternalNode{
+					Weight: 10,
+					Left:   nil,
+					Right:  nil,
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
