@@ -22,24 +22,24 @@ func TestCreateBinTreeFromMap(t *testing.T) {
 			want: binarytree.HuffTree{
 				Root: binarytree.InternalNode{
 					Weight: 12,
-					Left: binarytree.LeafNode{
+					L: binarytree.LeafNode{
 						Character: 't',
 						Weight:    5,
 					},
-					Right: binarytree.InternalNode{
+					R: binarytree.InternalNode{
 						Weight: 7,
-						Left: binarytree.InternalNode{
+						L: binarytree.InternalNode{
 							Weight: 3,
-							Left: binarytree.LeafNode{
+							L: binarytree.LeafNode{
 								Weight:    1,
 								Character: 'h',
 							},
-							Right: binarytree.LeafNode{
+							R: binarytree.LeafNode{
 								Weight:    2,
 								Character: 'i',
 							},
 						},
-						Right: binarytree.LeafNode{
+						R: binarytree.LeafNode{
 							Weight:    4,
 							Character: 's',
 						},

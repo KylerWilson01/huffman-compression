@@ -15,6 +15,19 @@ type PrefixNode struct {
 	Frequency int
 }
 
+func walk(t binarytree.BaseNode, code []byte, ch chan PrefixNode) {
+	if t == nil {
+		return
+	}
+
+	walk(t.Left(), append(code, 0), ch)
+	if t.IsLeaf() {
+		bn := t.(binarytree.LeafNode)
+		ch <- PrefixNode{Character: bn.Character, Code: code, Frequency: bn.Weight}
+	}
+	walk(t.Right(), append(code, 1), ch)
+}
+
 // CreatePrefixTableFromTree creates a prefix table from the binary tree that was previously created
 func CreatePrefixTableFromTree(
 	ht *binarytree.HuffTree,
@@ -25,25 +38,18 @@ func CreatePrefixTableFromTree(
 	}
 	pt := []PrefixNode{}
 
-	c1 := make(chan binarytree.BaseNode)
-	go ht.Walker(c1)
+	c1 := make(chan PrefixNode)
+	go walk(ht.Root, []byte{}, c1)
 	for v1 := range c1 {
-		if v1.IsLeaf() {
-			ln := v1.(binarytree.LeafNode)
-			table := ft.GetFrequency()
+		table := ft.GetFrequency()
 
-			ftc, ok := table[ln.Character]
+		_, ok := table[v1.Character]
 
-			if !ok {
-				return nil, errors.New("Could not find the character in the given table")
-			}
-
-			pt = append(pt, PrefixNode{
-				Character: ln.Character,
-				Code:      ln.Code,
-				Frequency: ftc,
-			})
+		if !ok {
+			return nil, errors.New("Could not find the character in the given table")
 		}
+
+		pt = append(pt, v1)
 	}
 
 	return pt, nil

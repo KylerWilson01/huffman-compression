@@ -10,17 +10,16 @@ import (
 type BaseNode interface {
 	weight() int
 	IsLeaf() bool
-	left() BaseNode
-	right() BaseNode
+	Left() BaseNode
+	Right() BaseNode
 }
 
 // LeafNode is the leaf to the tree
 type LeafNode struct {
 	Character rune
 	Weight    int
-	Left      BaseNode
-	Right     BaseNode
-	Code      []byte
+	L         BaseNode
+	R         BaseNode
 }
 
 func (n LeafNode) weight() int {
@@ -32,19 +31,19 @@ func (n LeafNode) IsLeaf() bool {
 	return true
 }
 
-func (n LeafNode) left() BaseNode {
-	return n.Left
+func (n LeafNode) Left() BaseNode {
+	return n.L
 }
 
-func (n LeafNode) right() BaseNode {
-	return n.Right
+func (n LeafNode) Right() BaseNode {
+	return n.R
 }
 
 // InternalNode is the struct that connects two leaf nodes
 type InternalNode struct {
 	Weight int
-	Left   BaseNode
-	Right  BaseNode
+	L      BaseNode
+	R      BaseNode
 }
 
 func (in InternalNode) weight() int {
@@ -56,12 +55,12 @@ func (in InternalNode) IsLeaf() bool {
 	return false
 }
 
-func (in InternalNode) left() BaseNode {
-	return in.Left
+func (in InternalNode) Left() BaseNode {
+	return in.L
 }
 
-func (in InternalNode) right() BaseNode {
-	return in.Right
+func (in InternalNode) Right() BaseNode {
+	return in.R
 }
 
 // HuffTree is the struct for the tree
@@ -77,8 +76,8 @@ func (ht *HuffTree) Weight() int {
 func newHuffInternalTree(l, r BaseNode, wt int) HuffTree {
 	return HuffTree{
 		Root: InternalNode{
-			Left:   l,
-			Right:  r,
+			L:      l,
+			R:      r,
 			Weight: wt,
 		},
 	}
@@ -96,8 +95,8 @@ func CreateBinaryTreeFromMap(m map[rune]int) HuffTree {
 			leafNodeArr,
 			HuffTree{
 				Root: LeafNode{
-					Character: char, Weight: freq, Left: nil,
-					Right: nil,
+					Character: char, Weight: freq, L: nil,
+					R: nil,
 				},
 			},
 		)
@@ -120,25 +119,19 @@ func CreateBinaryTreeFromMap(m map[rune]int) HuffTree {
 }
 
 // walk walks the tree
-func walk(t BaseNode, ch chan BaseNode, code []byte) {
+func walk(t BaseNode, ch chan BaseNode) {
 	if t == nil {
 		return
 	}
 
-	walk(t.left(), ch, append(code, 0))
-	if t.IsLeaf() {
-		ln := t.(LeafNode)
-		ln.Code = code
-		ch <- ln
-	} else {
-		ch <- t
-	}
-	walk(t.right(), ch, append(code, 1))
+	walk(t.Left(), ch)
+	ch <- t
+	walk(t.Right(), ch)
 }
 
 // Walker starts the walk of the tree
 func (ht *HuffTree) Walker(ch chan BaseNode) {
-	walk(ht.Root, ch, []byte{})
+	walk(ht.Root, ch)
 	close(ch)
 }
 
